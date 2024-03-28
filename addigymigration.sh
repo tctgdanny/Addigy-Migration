@@ -548,7 +548,7 @@ else
         dialogCommand "progresstext: Reconnecting to Wi-Fi network."
         wifiCount=0
         sleep 1
-          while [[ -z $currentSSID ]] && [[ "$wifiCount" -lt 5 ]]; do
+          while [[ -z $currentSSID ]] && [[ "$wifiCount" -lt 3 ]]; do
             adapter=$(networksetup -listallhardwareports | awk '/Wi-Fi/{getline; print $2}')
             networksetup -setairportnetwork "${adapter}" "${ssid}" "${psk}"
             networksetup -addpreferredwirelessnetworkatindex "${adapter}" "${ssid}" 0 WPA2
