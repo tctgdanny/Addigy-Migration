@@ -56,7 +56,7 @@ if [ "$dialogResults" = 0 ]; then
 else
     echo "Output: $dialogResults"
     echo "User did not choose to proceed - likely a nuke or timeout"
-    exit 0
+    exit 1
 fi
 
 ########################################################################################
