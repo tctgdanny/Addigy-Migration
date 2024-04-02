@@ -4,30 +4,41 @@
 ################################## SCRIPT CONDITIONS ###################################
 ########################################################################################
 
+migration_log="/var/tmp/migration_log.log"
+if [[ ! -e "$migration_log" ]]; then
+  touch "$migration_log"
+fi
+
+function sendToLog(){
+### Sends a given string to the main migration log ###
+    /bin/echo "$@" >> "$migration_log"
+}
+
 # Check if Swift Dialog is already running. If it is, kill.
 if pgrep -xq -- "Dialog"; then
     killall Dialog
     exit 0
 fi
 
+sendToLog "Starting migration attempt: $(date)"
 # Check for presence of SwiftDialog.
 if [[ -e "/usr/local/bin/dialog" ]]; then
-    echo "Swift Dialog is already installed."
+    sendToLog "Swift Dialog is already installed."
     swiftDialogVersion=$(defaults read "/Library/Application Support/Dialog/Dialog.app/Contents/Info.plist" CFBundleShortVersionString)
     if [[ "$swiftDialogVersion" == "2.4.2" ]]; then
-        echo "Swift Dialog version is up to date."
+        sendToLog "Swift Dialog version is up to date."
     else
-        echo "Swift Dialog version is out of date - installing 2.4.2"
+        sendToLog "Swift Dialog version is out of date - installing 2.4.2"
         /usr/sbin/installer -pkg "/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/dialog-2.4.2-4755.pkg" -target /
     fi
 else
-    echo "Swift Dialog not found - installing"
+    sendToLog "Swift Dialog not found - installing"
     /usr/sbin/installer -pkg "/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/dialog-2.4.2-4755.pkg" -target /
 fi
 
 # Check for presence of migration variables file.
 if [[ ! -f "/Library/Addigy/Migration/.migration_variables.sh" ]]; then
-  echo "Variables file does not exist. Exiting script."
+  sendToLog "Variables file does not exist. Exiting script."
   exit 1
 fi
 
