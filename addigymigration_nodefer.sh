@@ -4,7 +4,7 @@
 ################################## SCRIPT CONDITIONS ###################################
 ########################################################################################
 
-# Check if Swift Dialog is already running. If they are, don't interrupt.
+# Check if Swift Dialog is already running. If it is, kill.
 if pgrep -xq -- "Dialog"; then
     killall Dialog
     exit 0

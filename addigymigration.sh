@@ -4,9 +4,9 @@
 ################################## SCRIPT CONDITIONS ###################################
 ########################################################################################
 
-# Check if Swift Dialog is already running. If they are, don't interrupt.
+# Check if Swift Dialog is already running. If it is, kill.
 if pgrep -xq -- "Dialog"; then
-    echo "Swift Dialog is already open - exiting to not interrupt current migration."
+    killall Dialog
     exit 0
 fi
 
