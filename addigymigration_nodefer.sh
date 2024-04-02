@@ -187,20 +187,22 @@ function openMobileConfig(){
 ### Opens the mobileconfig profile in non-ADE enrollments - dynamic for use with System Settings/Preferences depending on OS version ###
     dialogCommand "progresstext: Verifying Addigy configuration profile."
     sendToLog "Opening Addigy profile"
-    open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
+    userID=$(id -u $(scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/ && ! /loginwindow/ { print $3 }'))
+    launchctl asuser "$userID" open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
 
     # Wait 3 seconds, then open the profile again for good measure.
     sleep 3
     sendToLog "Opening again for good measure."
-    open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
+    launchctl asuser "$userID" open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
 
     sleep 3
+    userID=$(id -u $(scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/ && ! /loginwindow/ { print $3 }'))
     if [[ "${osVersion}" -ge "13" ]]; then
         sendToLog "OS 13 or greater - opening System Settings for profile install."
-        open "x-apple.systempreferences:com.apple.preferences.configurationprofiles"
+        launchctl asuser "$userID" open "x-apple.systempreferences:com.apple.preferences.configurationprofiles"
     else  
         sendToLog "OS 12 or lower - opening System Preferences for profile install."
-        open "/System/Library/PreferencePanes/Profiles.prefPane"
+        launchctl asuser "$userID" open "/System/Library/PreferencePanes/Profiles.prefPane"
     fi
 
     sleep 1

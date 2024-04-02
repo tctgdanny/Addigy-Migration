@@ -114,7 +114,8 @@ cat << "EOF" > /tmp/agent_migrator.sh
 ############# ESTABLISH LOG FILE #############
 
 migration_log="/var/tmp/migration_log.log"
-if [[ ! -e "$migration_log" ]]; then
+if [[ -e "$migration_log" ]]; then
+  rm "$migration_log"
   touch "$migration_log"
 fi
 
@@ -136,8 +137,8 @@ else
 fi
 
 MDMLink="$MDMLink"
-csvPath="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/abm_devices.csv" # Export device list from ABM for devices expected to migrate
-logoPath="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png" # Core logo
+csvPath="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/abm_devices.csv" # Export device list from ABM for devices expected to migrate
+logoPath="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/CoreLogoTransparent.png" # Core logo
 
 # WiFi Credentials for Reconnecting
 ssid="$ssid"
@@ -154,7 +155,7 @@ apiToken="$apiToken"
 sdMessageFontSize="16"
 sdTitleFontSize="24"
 sdTitle="none"
-sdIcon="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png"
+sdIcon="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/CoreLogoTransparent.png"
 sdMessage="Addigy migration in progress. Please stay near your computer."
 
 # SwiftDialog Enroll instructions based on OS
@@ -220,20 +221,22 @@ function openMobileConfig(){
 ### Opens the mobileconfig profile in non-ADE enrollments - dynamic for use with System Settings/Preferences depending on OS version ###
     dialogCommand "progresstext: Verifying Addigy configuration profile."
     sendToLog "Opening Addigy profile"
-    open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
+    userID=$(id -u $(scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/ && ! /loginwindow/ { print $3 }'))
+    launchctl asuser "$userID" open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
 
     # Wait 3 seconds, then open the profile again for good measure.
     sleep 3
     sendToLog "Opening again for good measure."
-    open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
+    launchctl asuser "$userID" open "/Library/Addigy/mdm-profile-addigy.mobileconfig"
 
     sleep 3
+    userID=$(id -u $(scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/ && ! /loginwindow/ { print $3 }'))
     if [[ "${osVersion}" -ge "13" ]]; then
         sendToLog "OS 13 or greater - opening System Settings for profile install."
-        open "x-apple.systempreferences:com.apple.preferences.configurationprofiles"
+        launchctl asuser "$userID" open "x-apple.systempreferences:com.apple.preferences.configurationprofiles"
     else  
         sendToLog "OS 12 or lower - opening System Preferences for profile install."
-        open "/System/Library/PreferencePanes/Profiles.prefPane"
+        launchctl asuser "$userID" open "/System/Library/PreferencePanes/Profiles.prefPane"
     fi
 
     sleep 1
@@ -310,7 +313,7 @@ function cleanupFiles(){
 sendToLog "Cleaning up all migration-related files."
 migratorPlist="/Library/LaunchDaemons/com.migrator.plist"
 scriptFile="/tmp/agent_migrator.sh"
-packageFolder="/Library/Addigy/ansible/packages/Addigy Migration (2.1)"
+packageFolder="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)"
 
 if [[ -e "$scriptFile" ]]; then
     sudo rm "$scriptFile" && sendToLog "Script file removed"
