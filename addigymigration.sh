@@ -137,8 +137,8 @@ else
 fi
 
 MDMLink="$MDMLink"
-csvPath="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/abm_devices.csv" # Export device list from ABM for devices expected to migrate
-logoPath="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/CoreLogoTransparent.png" # Core logo
+csvPath="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/abm_devices.csv" # Export device list from ABM for devices expected to migrate
+logoPath="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png" # Core logo
 
 # WiFi Credentials for Reconnecting
 ssid="$ssid"
@@ -155,7 +155,7 @@ apiToken="$apiToken"
 sdMessageFontSize="16"
 sdTitleFontSize="24"
 sdTitle="none"
-sdIcon="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)/CoreLogoTransparent.png"
+sdIcon="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png"
 sdMessage="Addigy migration in progress. Please stay near your computer."
 
 # SwiftDialog Enroll instructions based on OS
@@ -313,7 +313,7 @@ function cleanupFiles(){
 sendToLog "Cleaning up all migration-related files."
 migratorPlist="/Library/LaunchDaemons/com.migrator.plist"
 scriptFile="/tmp/agent_migrator.sh"
-packageFolder="/Library/Addigy/ansible/packages/Addigy Migration (No Defer) (2.1)"
+packageFolder="/Library/Addigy/ansible/packages/Addigy Migration (2.1)"
 
 if [[ -e "$scriptFile" ]]; then
     sudo rm "$scriptFile" && sendToLog "Script file removed"
