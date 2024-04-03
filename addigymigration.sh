@@ -54,6 +54,7 @@ if [[ ! -f "$deferralCounterFile" ]]; then
   sudo echo "5" > "$deferralCounterFile"
 fi
 
+sendToLog "Sending initial confirmation prompt"
 currentDeferralCount=$(sudo cat "$deferralCounterFile")
 set +e
 if [[ "$currentDeferralCount" -gt 0 ]]; then
