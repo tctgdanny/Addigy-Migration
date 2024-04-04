@@ -174,8 +174,8 @@ function migrationCompleteCheck(){
     isApproved=$(profiles status -type enrollment | grep -o "User Approved")
     while [ -z "$isApproved" ] && [ "$approvedCounter" -lt "600" ]; do
         ((approvedCounter++))
-        isApproved=$(profiles status -type enrollment | grep -o "User Approved")
         sendToLog "Approved counter is at: ${approvedCounter}"
+        isApproved=$(profiles status -type enrollment | grep -o "User Approved")
         sleep 1
     done
     if [[ ! -z "$isApproved" ]]; then
