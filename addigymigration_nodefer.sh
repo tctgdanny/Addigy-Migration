@@ -169,19 +169,20 @@ function adeCheckComplete(){
 
 function migrationCompleteCheck(){
 ### Checks if the user approved the profile from System Settings or System Preferences ###
-    sendToLog "Waiting for MDM to be installed or for Counter to timeout at 1200"
+    sendToLog "Waiting for MDM to be installed or for Counter to timeout at 600"
     approvedCounter=0
     isApproved=$(profiles status -type enrollment | grep -o "User Approved")
-    while [ -z "$isApproved" ] && [ "$approvedCounter" -lt "1200" ]; do
+    while [ -z "$isApproved" ] && [ "$approvedCounter" -lt "600" ]; do
         ((approvedCounter++))
         isApproved=$(profiles status -type enrollment | grep -o "User Approved")
+        sendToLog "Approved counter is at: ${approvedCounter}"
         sleep 1
     done
     if [[ ! -z "$isApproved" ]]; then
         sendToLog "User approved MDM profile."
         dialogCommand "progress: 80"
-    elif [[ "$approvedCounter" -eq "1200" ]]; then
-        sendToLog "User did not approve in 20 minutes."
+    elif [[ "$approvedCounter" -eq "600" ]]; then
+        sendToLog "User did not approve in 10 minutes."
     fi
 }
 
@@ -211,6 +212,7 @@ function openMobileConfig(){
     dialogCommand "progresstext: Waiting for your approval."
     osBasedInstruction
     migrationCompleteCheck
+    exitMigrationApp
 }
 
 function checkInstallADE() {

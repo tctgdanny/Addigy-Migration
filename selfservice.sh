@@ -46,64 +46,29 @@ fi
 ########################################################################################
 ############################ PROMPT USER TO START MIGRATION ############################
 ########################################################################################
-
-# Set deferral counter
-deferralCounterFile="/Library/Addigy/defer_remaining_2.txt"
-if [[ ! -f "$deferralCounterFile" ]]; then
-  # Create starting deferral counter of 5.
-  sudo touch "$deferralCounterFile"
-  sudo echo "5" > "$deferralCounterFile"
-fi
-
 sendToLog "Sending initial confirmation prompt"
-currentDeferralCount=$(sudo cat "$deferralCounterFile")
 set +e
-if [[ "$currentDeferralCount" -gt 0 ]]; then
-  # Deferrals remain - include deferral button
-  echo "${currentDeferralCount} deferrals remaining"
-  while [ -z "$dialogResults" ]; do
-    /usr/local/bin/dialog \
-    --title "Addigy Migration Assistant" \
-    --message "The Core needs to run a mandatory software migration on your computer. \n \nThis process should take 3-5 minutes. When you are ready, choose an option below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
-    --alignment center \
-    --icon none \
-    --ontop \
-    --image "/Library/Addigy/ansible/packages/Addigy Migration (Self Service) (2.1)/CoreLogoTransparent.png" \
-    --button1text "Ready!" \
-    --button2text "Defer (${currentDeferralCount} Remaining)" \
-    --position "center"
-    dialogResults=$?
-    done
-else
-  # No deferrals remain - do not include deferral button
-  echo "${currentDeferralCount} deferrals remaining"
-  while [ -z "$dialogResults" ]; do
-    /usr/local/bin/dialog \
-    --title "Addigy Migration Assistant" \
-    --message "The Core needs to run a mandatory software migration on your computer. \n \nWhen you are ready, choose an option below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
-    --alignment center \
-    --icon none \
-    --ontop \
-    --image "/Library/Addigy/ansible/packages/Addigy Migration (Self Service) (2.1)/CoreLogoTransparent.png" \
-    --button1text "Ready!" \
-    --position "center"
-    dialogResults=$?
-    done
-fi
+while [ -z "$dialogResults" ]; do
+  /usr/local/bin/dialog \
+  --title "Addigy Migration Assistant" \
+  --message "The Core needs to run a mandatory software migration on your computer. \n \nWhen you are ready, click below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
+  --alignment center \
+  --icon none \
+  --ontop \
+  --image "/Library/Addigy/ansible/packages/Addigy Migration (Self Service) (2.1)/CoreLogoTransparent.png" \
+  --button1text "Ready!" \
+  --position "center"
+  dialogResults=$?
+  done
 set -e
 
 # Interpret results from user prompts
 if [ "$dialogResults" = 0 ]; then
     echo "User chose to proceed."
-elif [ "$dialogResults" = 2 ]; then
-    echo "User chose to defer. Exiting script."
-    ((currentDeferralCount--))
-    sudo echo "$currentDeferralCount" > "$deferralCounterFile"
-    exit 0
 else
     echo "Output: $dialogResults"
-    echo "User did not choose to proceed or defer - likely a nuke or timeout"
-    exit 0
+    echo "User did not choose to proceed - likely a nuke or timeout"
+    exit 1
 fi
 
 ########################################################################################
@@ -123,13 +88,14 @@ fi
 
 function sendToLog(){
 ### Sends a given string to the main migration log ###
-    /bin/echo "$@" >> "$migration_log"
+    timeStamp=$(date "+%m/%d/%Y %H:%M:%S")
+    /bin/echo "${timeStamp} $1" >> "$migration_log"
 }
 
 ##############################################
 ################## VARIABLES #################
 
-# Source variables
+# Source variables 
 if [[ -f "/Library/Addigy/Migration/.migration_variables.sh" ]]; then
   sendToLog "Sourcing variables"
   source "/Library/Addigy/Migration/.migration_variables.sh"
@@ -203,19 +169,20 @@ function adeCheckComplete(){
 
 function migrationCompleteCheck(){
 ### Checks if the user approved the profile from System Settings or System Preferences ###
-    sendToLog "Waiting for MDM to be installed or for Counter to timeout at 1200"
+    sendToLog "Waiting for MDM to be installed or for Counter to timeout at 600"
     approvedCounter=0
     isApproved=$(profiles status -type enrollment | grep -o "User Approved")
-    while [ -z "$isApproved" ] && [ "$approvedCounter" -lt "1200" ]; do
+    while [ -z "$isApproved" ] && [ "$approvedCounter" -lt "600" ]; do
         ((approvedCounter++))
         isApproved=$(profiles status -type enrollment | grep -o "User Approved")
+        sendToLog "Approved counter is at: ${approvedCounter}"
         sleep 1
     done
     if [[ ! -z "$isApproved" ]]; then
         sendToLog "User approved MDM profile."
         dialogCommand "progress: 80"
-    elif [[ "$approvedCounter" -eq "1200" ]]; then
-        sendToLog "User did not approve in 20 minutes."
+    elif [[ "$approvedCounter" -eq "600" ]]; then
+        sendToLog "User did not approve in 10 minutes."
     fi
 }
 
@@ -236,7 +203,7 @@ function openMobileConfig(){
     if [[ "${osVersion}" -ge "13" ]]; then
         sendToLog "OS 13 or greater - opening System Settings for profile install."
         launchctl asuser "$userID" open "x-apple.systempreferences:com.apple.preferences.configurationprofiles"
-    else
+    else  
         sendToLog "OS 12 or lower - opening System Preferences for profile install."
         launchctl asuser "$userID" open "/System/Library/PreferencePanes/Profiles.prefPane"
     fi
@@ -245,6 +212,7 @@ function openMobileConfig(){
     dialogCommand "progresstext: Waiting for your approval."
     osBasedInstruction
     migrationCompleteCheck
+    exitMigrationApp
 }
 
 function checkInstallADE() {
@@ -400,7 +368,7 @@ listIndexes=$((listTotal - 1))
 
 dialogListString=""
 for listItem in "${progressList[@]}"; do
-    if [[ -z "$dialogListString" ]]; then
+    if [[ -z "$dialogListString" ]]; then 
         dialogListString+="$listItem"
     else
         dialogListString+=", $listItem"
@@ -589,7 +557,7 @@ else
 
         # Prompt the user to reconnect if they still aren't connected.
         if [[ -z "$currentSSID" ]]; then
-          manualReconnectPrompt
+          manualReconnectPrompt    
         fi
       fi
     else
@@ -648,7 +616,7 @@ fi
 
 ############# USER PROMOTION  ################
 # If the user was not an admin prior to migration: promote user, and create a flag file so post-migration cleanup and demote the user if this script didn't end up doing it.
-if [[ "$userAlreadyAdmin" = false ]]; then
+if [[ "$userAlreadyAdmin" = false ]]; then 
 sudo dscl . -merge /Groups/admin GroupMembership "$currentUser" && touch "/Users/${currentUser}/.tempPromoted"
 sendToLog "[Promotion complete]"
 sendToLog "Created flag file"
@@ -698,7 +666,7 @@ fi
 
 
 function mainWorkFlow(){
-# Initial timestamp of migration for logs
+# Initial timestamp of migration for logs 
 dateTime=$(date)
 sendToLog "#####################################################################"
 sendToLog "###################### NEW MIGRATION ATTEMPT ########################"
