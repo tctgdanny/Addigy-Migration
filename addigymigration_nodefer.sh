@@ -271,7 +271,22 @@ sendToLog "Sending user end migration prompt"
 --icon none \
 --image "$logoPath" \
 --button1text "OK" \
---position "center"
+--position "center" \
+--ontop
+}
+
+function endMigrationPrompt_noExit() {
+### Dynamic end-migration prompt independent from main migrator ###
+sendToLog "Sending user end migration prompt"
+/usr/local/bin/dialog \
+--title "Addigy Migration Assistant" \
+--message "$1" \
+--alignment center \
+--icon none \
+--image "$logoPath" \
+--button1disabled \
+--position "center" \
+--ontop
 }
 
 function cleanupFiles(){
@@ -318,13 +333,12 @@ if sudo profiles -P | grep $AddigyMDMProfileIdentifier >& /dev/null; then
   exit 0
 elif [[ "$attemptCount" -lt "$maxAttempts" ]]; then
   dialogCommand "quit:"
-  endMigrationPrompt "Hmm...it looks like an error occured with your migration. Please click 'OK' to attempt it one more time."
+  endMigrationPrompt "Hmm...it looks like an error occured with your migration. Please click 'OK' to attempt it again."
   migrationSuccess=0
   migrationAttempt
 else
   dialogCommand "quit:"
-  endMigrationPrompt "Hmm...it looks like an error occured with your migration. \n\nPlease reach out to The Core at your earliest convenience: \n\n469-251-2673 | support@thecoretg.com"
-  cleanupFiles
+  endMigrationPrompt_noExit
   exit 1
 fi
 
