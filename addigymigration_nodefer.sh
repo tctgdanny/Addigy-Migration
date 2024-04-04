@@ -289,6 +289,7 @@ sendToLog "Sending user end migration prompt"
 --icon none \
 --image "$logoPath" \
 --button1disabled \
+--button1text none \
 --position "center" \
 --ontop
 }
@@ -342,7 +343,7 @@ elif [[ "$attemptCount" -lt "$maxAttempts" ]]; then
   migrationAttempt
 else
   dialogCommand "quit:"
-  endMigrationPrompt_noExit
+  endMigrationPrompt_noExit "Hmm...it looks like an error occured with your migration. \n\nPlease reach out to The Core at your earliest convenience: \n\n469-251-2673 | support@thecoretg.com"
   exit 1
 fi
 
