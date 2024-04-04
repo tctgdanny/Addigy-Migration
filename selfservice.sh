@@ -12,7 +12,7 @@ fi
 function sendToLog(){
 ### Sends a given string to the main migration log ###
     timeStamp=$(date "+%m/%d/%Y %H:%M:%S")
-    /bin/echo -e "${timeStamp} $1" >> "$migration_log"
+    /bin/echo "${timeStamp} $1" >> "$migration_log"
 }
 
 # Check if Swift Dialog is already running. If it is, kill.
