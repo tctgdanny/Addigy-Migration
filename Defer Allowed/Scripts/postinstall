@@ -693,6 +693,7 @@ fi
 function mainWorkFlow(){
 # Initial timestamp of migration for logs 
 dateTime=$(date)
+sendToLog ""
 sendToLog "#####################################################################"
 sendToLog "###################### NEW MIGRATION ATTEMPT ########################"
 sendToLog "Migration attempt began at time: ${dateTime}"
