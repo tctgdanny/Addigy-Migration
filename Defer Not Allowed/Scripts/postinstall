@@ -64,10 +64,10 @@ set -e
 
 # Interpret results from user prompts
 if [ "$dialogResults" = 0 ]; then
-    echo "User chose to proceed."
+    sendToLog "User chose to proceed."
 else
-    echo "Output: $dialogResults"
-    echo "User did not choose to proceed - likely a nuke or timeout"
+    sendToLog "Output: $dialogResults"
+    sendToLog "User did not choose to proceed - likely a nuke or timeout"
     exit 1
 fi
 

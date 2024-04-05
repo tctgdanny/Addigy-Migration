@@ -95,15 +95,15 @@ set -e
 
 # Interpret results from user prompts
 if [ "$dialogResults" = 0 ]; then
-    echo "User chose to proceed."
+    sendToLog "User chose to proceed."
 elif [ "$dialogResults" = 2 ]; then
-    echo "User chose to defer. Exiting script."
+    sendToLog "User chose to defer. Exiting script."
     ((currentDeferralCount--))
     sudo echo "$currentDeferralCount" > "$deferralCounterFile"
     exit 0
 else 
-    echo "Output: $dialogResults"
-    echo "User did not choose to proceed or defer - likely a nuke or timeout"
+    sendToLog "Output: $dialogResults"
+    sendToLog "User did not choose to proceed or defer - likely a nuke or timeout"
     exit 0
 fi
 
