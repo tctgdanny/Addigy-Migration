@@ -364,26 +364,14 @@ popupCommandFile=$(mktemp /var/tmp/secondaryCommandFile.XXX)
 # Initialize list of items to add to swiftDialog list.
 sendToLog "Starting startSwiftDialog function"
 progressList=("Downloading Addigy Profile" "Removing Kandji" "Check Network" "Check ADE Status" "Addigy Enrollment")
-listTotal=${#progressList[@]}
-listIndexes=$((listTotal - 1))
-
-dialogListString=""
+dialogListString=()
 for listItem in "${progressList[@]}"; do
-    if [[ -z "$dialogListString" ]]; then 
-        dialogListString+="$listItem"
-    else
-        dialogListString+=", $listItem"
-    fi
+    dialogListString+=("--listitem")
+    dialogListString+=("$listItem,status=progress")
 done
 
 sendToLog "Initializing main SwiftDialog window"
-$swiftDialog --small --title "$sdTitle" --messagefont "size=${sdMessageFontSize}" --titlefont "size=${sdTitleFontSize}" --message "$sdMessage" --messagealignment center --icon none --progress 100 --position topleft --button1disabled --button1text none --ontop --moveable --commandfile "$sdCommandFile" & sleep .1
-dialogCommand "list: ${dialogListString}"
-
-# Give em all loading circles
-for index in $(seq 0 $listIndexes); do
-    dialogCommand "listitem: index: ${index}, status: progress"
-done
+$swiftDialog --small --title "$sdTitle" --messagefont "size=${sdMessageFontSize}" --titlefont "size=${sdTitleFontSize}" --message "$sdMessage" --messagealignment center --icon none --progress 100 "${dialogListString[@]}" --position topleft --button1disabled --button1text none --ontop --moveable --commandfile "$sdCommandFile" & sleep .1
 
 sendToLog "End of startSwiftDialog function"
 }

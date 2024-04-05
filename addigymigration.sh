@@ -46,29 +46,65 @@ fi
 ########################################################################################
 ############################ PROMPT USER TO START MIGRATION ############################
 ########################################################################################
+
+# Set deferral counter
+deferralCounterFile="/Library/Addigy/defer_remaining_2.txt"
+if [[ ! -f "$deferralCounterFile" ]]; then
+  # Create starting deferral counter of 5.
+  sudo touch "$deferralCounterFile"
+  sudo echo "5" > "$deferralCounterFile"
+fi
+
 sendToLog "Sending initial confirmation prompt"
+currentDeferralCount=$(sudo cat "$deferralCounterFile")
+logoPath="/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png"
 set +e
-while [ -z "$dialogResults" ]; do
-  /usr/local/bin/dialog \
-  --title "Addigy Migration Assistant" \
-  --message "The Core needs to run a mandatory software migration on your computer. \n \nWhen you are ready, click below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
-  --alignment center \
-  --icon none \
-  --ontop \
-  --image "/Library/Addigy/ansible/packages/Addigy Migration (2.1)/CoreLogoTransparent.png" \
-  --button1text "Ready!" \
-  --position "center"
-  dialogResults=$?
-  done
+if [[ "$currentDeferralCount" -gt 0 ]]; then
+  # Deferrals remain - include deferral button
+  echo "${currentDeferralCount} deferrals remaining"
+  while [ -z "$dialogResults" ]; do
+    /usr/local/bin/dialog \
+    --title "Addigy Migration Assistant" \
+    --message "The Core needs to run a mandatory software migration on your computer. \n \nThis process should take 3-5 minutes. When you are ready, choose an option below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
+    --alignment center \
+    --icon none \
+    --ontop \
+    --image "$logoPath" \
+    --button1text "Ready!" \
+    --button2text "Defer (${currentDeferralCount} Remaining)" \
+    --position "center"
+    dialogResults=$?
+    done
+else
+  # No deferrals remain - do not include deferral button
+  echo "${currentDeferralCount} deferrals remaining"
+  while [ -z "$dialogResults" ]; do
+    /usr/local/bin/dialog \
+    --title "Addigy Migration Assistant" \
+    --message "The Core needs to run a mandatory software migration on your computer. \n \nWhen you are ready, choose an option below. Please stay at your computer for the duration of the migration. \n \nFor support, contact The Core: 469-251-2673 | support@thecoretg.com" \
+    --alignment center \
+    --icon none \
+    --ontop \
+    --image "$logoPath" \
+    --button1text "Ready!" \
+    --position "center"
+    dialogResults=$?
+    done
+fi
 set -e
 
 # Interpret results from user prompts
 if [ "$dialogResults" = 0 ]; then
     echo "User chose to proceed."
-else
+elif [ "$dialogResults" = 2 ]; then
+    echo "User chose to defer. Exiting script."
+    ((currentDeferralCount--))
+    sudo echo "$currentDeferralCount" > "$deferralCounterFile"
+    exit 0
+else 
     echo "Output: $dialogResults"
-    echo "User did not choose to proceed - likely a nuke or timeout"
-    exit 1
+    echo "User did not choose to proceed or defer - likely a nuke or timeout"
+    exit 0
 fi
 
 ########################################################################################
